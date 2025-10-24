@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sales Performance Dashboard</title>
+    <title>Sales Performance Dashboard - Multi-Sheet</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
@@ -31,6 +31,7 @@
             border-radius: 10px;
             margin-bottom: 20px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative;
         }
         
         .header h1 {
@@ -45,21 +46,22 @@
         }
 
         .refresh-button {
-            float: right;
+            position: absolute;
+            top: 25px;
+            right: 25px;
             background: #667eea;
             color: white;
             border: none;
-            padding: 8px 20px;
+            padding: 10px 25px;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 600;
             transition: all 0.3s ease;
         }
 
         .refresh-button:hover {
             background: #5568d3;
-            transform: translateY(-2px);
         }
 
         .refresh-button:disabled {
@@ -228,25 +230,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        .error-screen {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            text-align: center;
-            max-width: 600px;
-            margin: 50px auto;
-        }
-
-        .error-screen h2 {
-            color: #c53030;
-            margin-bottom: 15px;
-        }
-
-        .error-screen p {
-            color: #4a5568;
-            line-height: 1.6;
-        }
-
         #dashboardContent {
             display: none;
         }
@@ -256,54 +239,21 @@
     <div class="dashboard">
         <div class="header">
             <h1>📊 Sales Performance Dashboard</h1>
-            <p id="updateTime">Loading data...</p>
+            <p id="updateTime">Multi-Sheet Connected Dashboard</p>
             <button id="refreshButton" class="refresh-button" onclick="manualRefresh()">🔄 Refresh Data</button>
-            <span id="connectionStatus" class="connection-status status-loading">⏳ Connecting...</span>
+            <br>
+            <span id="connectionStatus" class="connection-status status-loading">⏳ Loading...</span>
         </div>
 
         <div id="loadingScreen" class="loading-screen">
             <div class="spinner"></div>
             <h2>Loading Dashboard Data...</h2>
-            <p>Fetching latest information from data source</p>
-        </div>
-
-        <div id="errorScreen" class="error-screen" style="display: none;">
-            <h2>⚠️ Unable to Load Data</h2>
-            <p>The dashboard couldn't connect to the data source. This could be because:</p>
-            <ul style="text-align: left; margin: 20px 0;">
-                <li>The Google Sheet URL is not configured</li>
-                <li>The sheet is not published to web</li>
-                <li>There's a network connectivity issue</li>
-            </ul>
-            <p><strong>Using demo data instead.</strong></p>
-            <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 30px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">Retry Connection</button>
+            <p id="loadingMessage">Fetching data from Google Sheets...</p>
         </div>
 
         <div id="dashboardContent">
-            <div class="kpi-container">
-                <div class="kpi-card">
-                    <div class="kpi-title">Total Revenue</div>
-                    <div class="kpi-value" id="totalRevenue">$0</div>
-                    <span class="kpi-change positive" id="revenueChange">↑ 0%</span>
-                </div>
-                
-                <div class="kpi-card">
-                    <div class="kpi-title">New Customers</div>
-                    <div class="kpi-value" id="newCustomers">0</div>
-                    <span class="kpi-change positive" id="customersChange">↑ 0%</span>
-                </div>
-                
-                <div class="kpi-card">
-                    <div class="kpi-title">Avg. Order Value</div>
-                    <div class="kpi-value" id="avgOrder">$0</div>
-                    <span class="kpi-change positive" id="avgOrderChange">↑ 0%</span>
-                </div>
-                
-                <div class="kpi-card">
-                    <div class="kpi-title">Customer Retention</div>
-                    <div class="kpi-value" id="retention">0%</div>
-                    <span class="kpi-change negative" id="retentionChange">↓ 0%</span>
-                </div>
+            <div class="kpi-container" id="kpiContainer">
+                <!-- KPIs will be loaded dynamically -->
             </div>
             
             <div class="chart-container">
@@ -313,7 +263,7 @@
                 </div>
                 
                 <div class="chart-card">
-                    <div class="chart-title">Sales by Product Category</div>
+                    <div class="chart-title">Sales by Category</div>
                     <canvas id="categoryChart"></canvas>
                 </div>
             </div>
@@ -325,13 +275,13 @@
                 </div>
                 
                 <div class="chart-card">
-                    <div class="chart-title">Customer Acquisition</div>
-                    <canvas id="customerChart"></canvas>
+                    <div class="chart-title">Top Products</div>
+                    <canvas id="productChart"></canvas>
                 </div>
             </div>
             
             <div class="table-container">
-                <div class="chart-title">Top Products by Revenue</div>
+                <div class="chart-title">Product Details</div>
                 <table id="productsTable">
                     <thead>
                         <tr>
@@ -350,312 +300,319 @@
         </div>
         
         <div class="footer">
-            <p>Created by Data Analytics Consultant | Real-time Connected Dashboard</p>
-            <p>Data updates automatically from Google Sheets</p>
+            <p>Created by Data Analytics Consultant | Multi-Sheet Dashboard</p>
+            <p>Data updates automatically from 5 different Google Sheets tabs</p>
         </div>
     </div>
     
     <script>
         // ============================================================================
-        // CONFIGURATION - Edit this section only
+        // CONFIGURATION - EDIT YOUR GOOGLE SHEETS URLs HERE
         // ============================================================================
         
         const CONFIG = {
-            // OPTION 1: Use your Google Sheets URL
-            // Get this by publishing your sheet as CSV (File → Share → Publish to web → CSV)
-            GOOGLE_SHEETS_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTc9tIzflWy9_hs9GWli6GJTIJ4Ws2A-OeGp9nXPBYYMAL7DlPCeVYpX6bsB_iAGw/pub?output=csv', // Put your Google Sheets CSV URL here
+            // Get these URLs by:
+            // 1. Open your Google Sheet
+            // 2. Click on the tab you want (e.g., "KPIs")
+            // 3. Look at the URL in browser: #gid=0 or #gid=123456
+            // 4. Use: https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=THE_GID_NUMBER
             
-            // OPTION 2: Use demo data if no URL is provided
-            USE_DEMO_DATA_IF_NO_URL: true,
+            BASE_SHEET_ID: '', // Put your main sheet ID here (from the URL)
             
-            // Auto-refresh interval (in milliseconds) - 0 to disable
-            AUTO_REFRESH_INTERVAL: 0, // 300000 = 5 minutes
+            // Tab GIDs (the number after #gid= when you click each tab)
+            SHEET_GIDS: {
+                KPIs: '0',           // Usually the first tab is gid=0
+                MonthlyRevenue: '',  // Check your sheet URL when on this tab
+                Categories: '',      // Check your sheet URL when on this tab
+                Regions: '',         // Check your sheet URL when on this tab
+                Products: ''         // Check your sheet URL when on this tab
+            },
             
-            // Show connection status
-            SHOW_CONNECTION_STATUS: true
+            // Or you can paste full URLs directly:
+            SHEET_URLS: {
+                KPIs: '',
+                MonthlyRevenue: '',
+                Categories: '',
+                Regions: '',
+                Products: ''
+            },
+            
+            AUTO_REFRESH_INTERVAL: 0, // 0 = disabled, 300000 = 5 minutes
+            USE_DEMO_DATA: true // Set to false to require real data
         };
         
         // ============================================================================
-        // END CONFIGURATION - Don't edit below this line unless you know what you're doing
+        // END CONFIGURATION
         // ============================================================================
 
         let charts = {};
-        let dashboardData = null;
-
-        // Demo data structure
-        const demoData = {
-            kpis: [
-                { metric: 'Total Revenue', value: 2400000, change: 18.5 },
-                { metric: 'New Customers', value: 847, change: 12.3 },
-                { metric: 'Avg Order Value', value: 2834, change: 5.2 },
-                { metric: 'Customer Retention', value: 94.2, change: -1.8 }
-            ],
-            monthlyRevenue: [
-                { month: 'Jan', revenue: 145000 },
-                { month: 'Feb', revenue: 168000 },
-                { month: 'Mar', revenue: 182000 },
-                { month: 'Apr', revenue: 195000 },
-                { month: 'May', revenue: 203000 },
-                { month: 'Jun', revenue: 218000 },
-                { month: 'Jul', revenue: 225000 },
-                { month: 'Aug', revenue: 240000 },
-                { month: 'Sep', revenue: 238000 },
-                { month: 'Oct', revenue: 265000 },
-                { month: 'Nov', revenue: 285000 },
-                { month: 'Dec', revenue: 296000 }
-            ],
-            categories: [
-                { name: 'Software', value: 35 },
-                { name: 'Cloud Services', value: 28 },
-                { name: 'Security', value: 18 },
-                { name: 'Development', value: 12 },
-                { name: 'Marketing', value: 7 }
-            ],
-            regions: [
-                { name: 'North America', revenue: 845000 },
-                { name: 'Europe', revenue: 623000 },
-                { name: 'Asia Pacific', revenue: 512000 },
-                { name: 'Latin America', revenue: 289000 },
-                { name: 'Middle East', revenue: 178000 }
-            ],
-            products: [
-                { rank: 1, name: 'Enterprise Suite Pro', category: 'Software', units: 1245, revenue: 487650, growth: 24 },
-                { rank: 2, name: 'Analytics Platform', category: 'Software', units: 892, revenue: 356800, growth: 19 },
-                { rank: 3, name: 'Cloud Storage Plus', category: 'Cloud Services', units: 2134, revenue: 298760, growth: 31 },
-                { rank: 4, name: 'Business Intelligence Tool', category: 'Software', units: 674, revenue: 269600, growth: 15 },
-                { rank: 5, name: 'Security Suite', category: 'Security', units: 1089, revenue: 261360, growth: 22 }
-            ]
+        let dashboardData = {
+            kpis: [],
+            monthlyRevenue: [],
+            categories: [],
+            regions: [],
+            products: []
         };
 
-        function updateConnectionStatus(status, message) {
-            if (!CONFIG.SHOW_CONNECTION_STATUS) {
-                document.getElementById('connectionStatus').style.display = 'none';
-                return;
+        function getSheetUrl(sheetName) {
+            // Check if full URL provided
+            if (CONFIG.SHEET_URLS[sheetName]) {
+                return CONFIG.SHEET_URLS[sheetName];
             }
+            
+            // Build URL from BASE_SHEET_ID and GID
+            if (CONFIG.BASE_SHEET_ID && CONFIG.SHEET_GIDS[sheetName]) {
+                return `https://docs.google.com/spreadsheets/d/${CONFIG.BASE_SHEET_ID}/export?format=csv&gid=${CONFIG.SHEET_GIDS[sheetName]}`;
+            }
+            
+            return null;
+        }
+
+        function updateStatus(status, message) {
             const statusEl = document.getElementById('connectionStatus');
             statusEl.className = 'connection-status status-' + status;
             statusEl.textContent = message;
         }
 
-        function updateTimestamp() {
-            const now = new Date();
-            const timeString = now.toLocaleString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            document.getElementById('updateTime').textContent = 'Last Updated: ' + timeString;
+        function updateLoadingMessage(message) {
+            document.getElementById('loadingMessage').textContent = message;
         }
 
-        function loadData() {
-            // Add timestamp to URL to bypass cache (cache-busting)
-            let dataUrl = CONFIG.GOOGLE_SHEETS_URL;
+        async function loadAllData() {
+            updateStatus('loading', '⏳ Loading data...');
+            document.getElementById('refreshButton').disabled = true;
             
-            if (dataUrl && dataUrl.trim() !== '') {
-                // Add timestamp parameter to force fresh data
-                const cacheBuster = new Date().getTime();
-                dataUrl = dataUrl + (dataUrl.includes('?') ? '&' : '?') + 'cachebust=' + cacheBuster;
+            try {
+                // Load all sheets in parallel
+                updateLoadingMessage('Loading KPIs...');
+                const kpisUrl = getSheetUrl('KPIs');
+                if (kpisUrl) {
+                    await loadSheet(kpisUrl, 'kpis');
+                }
                 
-                // Load from Google Sheets
-                updateConnectionStatus('loading', '⏳ Connecting to data source...');
+                updateLoadingMessage('Loading monthly revenue...');
+                const revenueUrl = getSheetUrl('MonthlyRevenue');
+                if (revenueUrl) {
+                    await loadSheet(revenueUrl, 'monthlyRevenue');
+                }
+                
+                updateLoadingMessage('Loading categories...');
+                const categoriesUrl = getSheetUrl('Categories');
+                if (categoriesUrl) {
+                    await loadSheet(categoriesUrl, 'categories');
+                }
+                
+                updateLoadingMessage('Loading regions...');
+                const regionsUrl = getSheetUrl('Regions');
+                if (regionsUrl) {
+                    await loadSheet(regionsUrl, 'regions');
+                }
+                
+                updateLoadingMessage('Loading products...');
+                const productsUrl = getSheetUrl('Products');
+                if (productsUrl) {
+                    await loadSheet(productsUrl, 'products');
+                }
+                
+                // Render dashboard
+                updateLoadingMessage('Rendering dashboard...');
+                renderDashboard();
+                
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('dashboardContent').style.display = 'block';
+                updateStatus('connected', '✓ All Data Loaded');
+                updateTimestamp();
+                document.getElementById('refreshButton').disabled = false;
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                updateStatus('error', '✗ Error loading data');
+                
+                if (CONFIG.USE_DEMO_DATA) {
+                    loadDemoData();
+                }
+            }
+        }
+
+        function loadSheet(url, dataKey) {
+            return new Promise((resolve, reject) => {
+                // Add cache buster
+                const cacheBuster = new Date().getTime();
+                const dataUrl = url + (url.includes('?') ? '&' : '?') + 'cachebust=' + cacheBuster;
                 
                 Papa.parse(dataUrl, {
                     download: true,
                     header: true,
                     complete: function(results) {
-                        try {
-                            dashboardData = parseSheetData(results.data);
-                            renderDashboard();
-                            updateConnectionStatus('connected', '✓ Live Data Connected');
-                            updateTimestamp();
-                            document.getElementById('loadingScreen').style.display = 'none';
+                        if (results.data && results.data.length > 0) {
+                            // Filter out empty rows
+                            const cleanData = results.data.filter(row => {
+                                return Object.values(row).some(val => val && val.toString().trim() !== '');
+                            });
                             
-                            // Enable refresh button
-                            document.getElementById('refreshButton').disabled = false;
-                            
-                            // Setup auto-refresh if configured
-                            if (CONFIG.AUTO_REFRESH_INTERVAL > 0) {
-                                setInterval(loadData, CONFIG.AUTO_REFRESH_INTERVAL);
-                            }
-                        } catch (error) {
-                            console.error('Parse error:', error);
-                            handleLoadError();
+                            dashboardData[dataKey] = parseSheetByType(cleanData, dataKey);
+                            console.log(`Loaded ${dataKey}:`, dashboardData[dataKey]);
+                            resolve();
+                        } else {
+                            reject(new Error(`No data in ${dataKey}`));
                         }
                     },
                     error: function(error) {
-                        console.error('Connection error:', error);
-                        handleLoadError();
+                        console.error(`Error loading ${dataKey}:`, error);
+                        reject(error);
                     }
                 });
-            } else if (CONFIG.USE_DEMO_DATA_IF_NO_URL) {
-                // Use demo data
-                setTimeout(() => {
-                    dashboardData = demoData;
-                    renderDashboard();
-                    updateConnectionStatus('connected', '✓ Demo Data Loaded');
-                    updateTimestamp();
-                    document.getElementById('loadingScreen').style.display = 'none';
-                    document.getElementById('refreshButton').disabled = false;
-                }, 1000);
-            } else {
-                handleLoadError();
+            });
+        }
+
+        function parseSheetByType(data, type) {
+            switch(type) {
+                case 'kpis':
+                    return data.map(row => ({
+                        metric: row.Metric || row.metric || '',
+                        value: parseFloat(row.Value || row.value) || 0,
+                        change: parseFloat(row.Change || row.change) || 0
+                    }));
+                
+                case 'monthlyRevenue':
+                    return data.map(row => ({
+                        month: row.Month || row.month || '',
+                        revenue: parseFloat(row.Revenue || row.revenue) || 0
+                    }));
+                
+                case 'categories':
+                    return data.map(row => ({
+                        name: row.Name || row.name || '',
+                        value: parseFloat(row.Value || row.value) || 0
+                    }));
+                
+                case 'regions':
+                    return data.map(row => ({
+                        name: row.Name || row.name || '',
+                        revenue: parseFloat(row.Revenue || row.revenue) || 0
+                    }));
+                
+                case 'products':
+                    return data.map(row => ({
+                        rank: parseInt(row.Rank || row.rank) || 0,
+                        name: row.Name || row.name || '',
+                        category: row.Category || row.category || '',
+                        units: parseInt(row.Units || row.units) || 0,
+                        revenue: parseFloat(row.Revenue || row.revenue) || 0,
+                        growth: parseFloat(row.Growth || row.growth) || 0
+                    }));
+                
+                default:
+                    return data;
             }
+        }
+
+        function loadDemoData() {
+            dashboardData = {
+                kpis: [
+                    { metric: 'Total Revenue', value: 2400000, change: 18.5 },
+                    { metric: 'New Customers', value: 847, change: 12.3 },
+                    { metric: 'Avg Order Value', value: 2834, change: 5.2 },
+                    { metric: 'Customer Retention', value: 94.2, change: -1.8 }
+                ],
+                monthlyRevenue: [
+                    { month: 'Jan', revenue: 145000 },
+                    { month: 'Feb', revenue: 168000 },
+                    { month: 'Mar', revenue: 182000 },
+                    { month: 'Apr', revenue: 195000 },
+                    { month: 'May', revenue: 203000 },
+                    { month: 'Jun', revenue: 218000 },
+                    { month: 'Jul', revenue: 225000 },
+                    { month: 'Aug', revenue: 240000 },
+                    { month: 'Sep', revenue: 238000 },
+                    { month: 'Oct', revenue: 265000 },
+                    { month: 'Nov', revenue: 285000 },
+                    { month: 'Dec', revenue: 296000 }
+                ],
+                categories: [
+                    { name: 'Software', value: 35 },
+                    { name: 'Cloud Services', value: 28 },
+                    { name: 'Security', value: 18 },
+                    { name: 'Development', value: 12 },
+                    { name: 'Marketing', value: 7 }
+                ],
+                regions: [
+                    { name: 'North America', revenue: 845000 },
+                    { name: 'Europe', revenue: 623000 },
+                    { name: 'Asia Pacific', revenue: 512000 },
+                    { name: 'Latin America', revenue: 289000 },
+                    { name: 'Middle East', revenue: 178000 }
+                ],
+                products: [
+                    { rank: 1, name: 'Enterprise Suite Pro', category: 'Software', units: 1245, revenue: 487650, growth: 24 },
+                    { rank: 2, name: 'Analytics Platform', category: 'Software', units: 892, revenue: 356800, growth: 19 },
+                    { rank: 3, name: 'Cloud Storage Plus', category: 'Cloud', units: 2134, revenue: 298760, growth: 31 },
+                    { rank: 4, name: 'BI Tool', category: 'Software', units: 674, revenue: 269600, growth: 15 },
+                    { rank: 5, name: 'Security Suite', category: 'Security', units: 1089, revenue: 261360, growth: 22 }
+                ]
+            };
+            
+            renderDashboard();
+            document.getElementById('loadingScreen').style.display = 'none';
+            document.getElementById('dashboardContent').style.display = 'block';
+            updateStatus('connected', '✓ Demo Data Loaded');
+            updateTimestamp();
+            document.getElementById('refreshButton').disabled = false;
+        }
+
+        function updateTimestamp() {
+            const now = new Date();
+            document.getElementById('updateTime').textContent = 
+                'Last Updated: ' + now.toLocaleString();
         }
 
         function manualRefresh() {
-            // Disable button during refresh
-            const btn = document.getElementById('refreshButton');
-            btn.disabled = true;
-            btn.textContent = '🔄 Refreshing...';
-            
-            updateConnectionStatus('loading', '⏳ Refreshing data...');
-            
-            // Force reload data
-            setTimeout(() => {
-                loadData();
-                btn.textContent = '🔄 Refresh Data';
-            }, 500);
-        }
-
-        function handleLoadError() {
-            if (CONFIG.USE_DEMO_DATA_IF_NO_URL) {
-                // Fallback to demo data
-                dashboardData = demoData;
-                renderDashboard();
-                updateConnectionStatus('error', '⚠ Using Demo Data');
-                updateTimestamp();
-                document.getElementById('loadingScreen').style.display = 'none';
-            } else {
-                // Show error screen
-                document.getElementById('loadingScreen').style.display = 'none';
-                document.getElementById('errorScreen').style.display = 'block';
-                updateConnectionStatus('error', '✗ Connection Failed');
-            }
-        }
-
-        function parseSheetData(data) {
-            // Parse real data from Google Sheets
-            // Data comes as array of objects with column headers as keys
-            
-            try {
-                // The CSV returns data with columns: Metric, Value, Change
-                // We need to map it to our dashboard structure
-                
-                const parsed = {
-                    kpis: [],
-                    monthlyRevenue: [],
-                    categories: [],
-                    regions: [],
-                    products: []
-                };
-                
-                // Parse based on what data looks like
-                // If data has 'Metric' column, it's KPIs
-                if (data.length > 0 && data[0].hasOwnProperty('Metric')) {
-                    data.forEach(row => {
-                        if (row.Metric && row.Value) {
-                            parsed.kpis.push({
-                                metric: row.Metric,
-                                value: parseFloat(row.Value) || 0,
-                                change: parseFloat(row.Change) || 0
-                            });
-                        }
-                    });
-                    return parsed.kpis.length > 0 ? { ...demoData, kpis: parsed.kpis } : demoData;
-                }
-                
-                // If data has 'Month' column, it's monthly revenue
-                if (data.length > 0 && data[0].hasOwnProperty('Month')) {
-                    data.forEach(row => {
-                        if (row.Month && row.Revenue) {
-                            parsed.monthlyRevenue.push({
-                                month: row.Month,
-                                revenue: parseFloat(row.Revenue) || 0
-                            });
-                        }
-                    });
-                    return parsed.monthlyRevenue.length > 0 ? { ...demoData, monthlyRevenue: parsed.monthlyRevenue } : demoData;
-                }
-                
-                // If data has 'Name' and 'Value' columns, could be categories
-                if (data.length > 0 && data[0].hasOwnProperty('Name') && data[0].hasOwnProperty('Value')) {
-                    data.forEach(row => {
-                        if (row.Name && row.Value) {
-                            // Check if it has Revenue column (then it's regions)
-                            if (data[0].hasOwnProperty('Revenue')) {
-                                parsed.regions.push({
-                                    name: row.Name,
-                                    revenue: parseFloat(row.Revenue) || 0
-                                });
-                            } else {
-                                parsed.categories.push({
-                                    name: row.Name,
-                                    value: parseFloat(row.Value) || 0
-                                });
-                            }
-                        }
-                    });
-                    
-                    if (parsed.regions.length > 0) {
-                        return { ...demoData, regions: parsed.regions };
-                    }
-                    if (parsed.categories.length > 0) {
-                        return { ...demoData, categories: parsed.categories };
-                    }
-                }
-                
-                // If data has 'Rank' column, it's products
-                if (data.length > 0 && data[0].hasOwnProperty('Rank')) {
-                    data.forEach(row => {
-                        if (row.Rank && row.Name) {
-                            parsed.products.push({
-                                rank: parseInt(row.Rank) || 0,
-                                name: row.Name || '',
-                                category: row.Category || '',
-                                units: parseInt(row.Units) || 0,
-                                revenue: parseFloat(row.Revenue) || 0,
-                                growth: parseFloat(row.Growth) || 0
-                            });
-                        }
-                    });
-                    return parsed.products.length > 0 ? { ...demoData, products: parsed.products } : demoData;
-                }
-                
-                // If nothing matches, return demo data
-                console.warn('Could not parse sheet data, using demo data');
-                return demoData;
-                
-            } catch (error) {
-                console.error('Error parsing sheet data:', error);
-                return demoData;
-            }
+            document.getElementById('loadingScreen').style.display = 'flex';
+            document.getElementById('dashboardContent').style.display = 'none';
+            loadAllData();
         }
 
         function renderDashboard() {
-            document.getElementById('dashboardContent').style.display = 'block';
+            // Render KPIs
+            renderKPIs();
             
-            // Update KPIs
-            const kpis = dashboardData.kpis;
-            document.getElementById('totalRevenue').textContent = '$' + (kpis[0].value / 1000000).toFixed(1) + 'M';
-            document.getElementById('revenueChange').textContent = '↑ ' + kpis[0].change + '% vs Q3';
-            
-            document.getElementById('newCustomers').textContent = kpis[1].value;
-            document.getElementById('customersChange').textContent = '↑ ' + kpis[1].change + '% vs Q3';
-            
-            document.getElementById('avgOrder').textContent = '$' + kpis[2].value.toLocaleString();
-            document.getElementById('avgOrderChange').textContent = '↑ ' + kpis[2].change + '% vs Q3';
-            
-            document.getElementById('retention').textContent = kpis[3].value + '%';
-            document.getElementById('retentionChange').textContent = '↓ ' + Math.abs(kpis[3].change) + '% vs Q3';
-            document.getElementById('retentionChange').className = 'kpi-change negative';
-
-            // Render charts
+            // Render Charts
             renderCharts();
             
-            // Render table
+            // Render Products Table
             renderProductsTable();
+        }
+
+        function renderKPIs() {
+            const container = document.getElementById('kpiContainer');
+            container.innerHTML = '';
+            
+            dashboardData.kpis.forEach(kpi => {
+                const card = document.createElement('div');
+                card.className = 'kpi-card';
+                
+                const changeClass = kpi.change >= 0 ? 'positive' : 'negative';
+                const arrow = kpi.change >= 0 ? '↑' : '↓';
+                
+                let displayValue = kpi.value;
+                if (kpi.metric.toLowerCase().includes('revenue')) {
+                    displayValue = '$' + (kpi.value / 1000000).toFixed(1) + 'M';
+                } else if (kpi.metric.toLowerCase().includes('retention') || kpi.metric.toLowerCase().includes('%')) {
+                    displayValue = kpi.value + '%';
+                } else if (kpi.value > 1000) {
+                    displayValue = kpi.value.toLocaleString();
+                } else {
+                    displayValue = '$' + kpi.value.toLocaleString();
+                }
+                
+                card.innerHTML = `
+                    <div class="kpi-title">${kpi.metric}</div>
+                    <div class="kpi-value">${displayValue}</div>
+                    <span class="kpi-change ${changeClass}">${arrow} ${Math.abs(kpi.change)}%</span>
+                `;
+                
+                container.appendChild(card);
+            });
         }
 
         function renderCharts() {
@@ -664,155 +621,116 @@
             charts = {};
 
             // Revenue Chart
-            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
-            charts.revenue = new Chart(revenueCtx, {
-                type: 'line',
-                data: {
-                    labels: dashboardData.monthlyRevenue.map(d => d.month),
-                    datasets: [{
-                        label: 'Revenue ($K)',
-                        data: dashboardData.monthlyRevenue.map(d => d.revenue / 1000),
-                        borderColor: '#667eea',
-                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                        tension: 0.4,
-                        fill: true,
-                        borderWidth: 3
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return '$' + value + 'K';
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            // Category Chart
-            const categoryCtx = document.getElementById('categoryChart').getContext('2d');
-            charts.category = new Chart(categoryCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: dashboardData.categories.map(c => c.name),
-                    datasets: [{
-                        data: dashboardData.categories.map(c => c.value),
-                        backgroundColor: [
-                            '#667eea',
-                            '#764ba2',
-                            '#f093fb',
-                            '#4facfe',
-                            '#43e97b'
-                        ],
-                        borderWidth: 2,
-                        borderColor: '#fff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: {
-                            position: 'right'
-                        }
-                    }
-                }
-            });
-
-            // Regional Chart
-            const regionCtx = document.getElementById('regionChart').getContext('2d');
-            charts.region = new Chart(regionCtx, {
-                type: 'bar',
-                data: {
-                    labels: dashboardData.regions.map(r => r.name),
-                    datasets: [{
-                        label: 'Revenue ($K)',
-                        data: dashboardData.regions.map(r => r.revenue / 1000),
-                        backgroundColor: [
-                            'rgba(102, 126, 234, 0.8)',
-                            'rgba(118, 75, 162, 0.8)',
-                            'rgba(240, 147, 251, 0.8)',
-                            'rgba(79, 172, 254, 0.8)',
-                            'rgba(67, 233, 123, 0.8)'
-                        ],
-                        borderColor: [
-                            '#667eea',
-                            '#764ba2',
-                            '#f093fb',
-                            '#4facfe',
-                            '#43e97b'
-                        ],
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return '$' + value + 'K';
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            // Customer Chart
-            const customerCtx = document.getElementById('customerChart').getContext('2d');
-            charts.customer = new Chart(customerCtx, {
-                type: 'line',
-                data: {
-                    labels: dashboardData.monthlyRevenue.map(d => d.month),
-                    datasets: [
-                        {
-                            label: 'New Customers',
-                            data: [65, 72, 78, 85, 89, 95, 98, 105, 112, 118, 125, 132],
+            if (dashboardData.monthlyRevenue.length > 0) {
+                const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+                charts.revenue = new Chart(revenueCtx, {
+                    type: 'line',
+                    data: {
+                        labels: dashboardData.monthlyRevenue.map(d => d.month),
+                        datasets: [{
+                            label: 'Revenue ($K)',
+                            data: dashboardData.monthlyRevenue.map(d => d.revenue / 1000),
                             borderColor: '#667eea',
                             backgroundColor: 'rgba(102, 126, 234, 0.1)',
                             tension: 0.4,
-                            fill: true
-                        },
-                        {
-                            label: 'Churned Customers',
-                            data: [8, 7, 9, 6, 7, 8, 10, 9, 7, 8, 11, 9],
-                            borderColor: '#f093fb',
-                            backgroundColor: 'rgba(240, 147, 251, 0.1)',
-                            tension: 0.4,
-                            fill: true
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: {
-                            position: 'top'
-                        }
+                            fill: true,
+                            borderWidth: 3
+                        }]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: { legend: { display: true, position: 'top' } },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { callback: value => '$' + value + 'K' }
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
+
+            // Category Chart
+            if (dashboardData.categories.length > 0) {
+                const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+                charts.category = new Chart(categoryCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: dashboardData.categories.map(c => c.name),
+                        datasets: [{
+                            data: dashboardData.categories.map(c => c.value),
+                            backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b'],
+                            borderWidth: 2,
+                            borderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: { legend: { position: 'right' } }
+                    }
+                });
+            }
+
+            // Regional Chart
+            if (dashboardData.regions.length > 0) {
+                const regionCtx = document.getElementById('regionChart').getContext('2d');
+                charts.region = new Chart(regionCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: dashboardData.regions.map(r => r.name),
+                        datasets: [{
+                            label: 'Revenue ($K)',
+                            data: dashboardData.regions.map(r => r.revenue / 1000),
+                            backgroundColor: ['rgba(102, 126, 234, 0.8)', 'rgba(118, 75, 162, 0.8)', 
+                                            'rgba(240, 147, 251, 0.8)', 'rgba(79, 172, 254, 0.8)', 
+                                            'rgba(67, 233, 123, 0.8)'],
+                            borderColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b'],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { callback: value => '$' + value + 'K' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Product Chart
+            if (dashboardData.products.length > 0) {
+                const productCtx = document.getElementById('productChart').getContext('2d');
+                charts.product = new Chart(productCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: dashboardData.products.slice(0, 5).map(p => p.name),
+                        datasets: [{
+                            label: 'Revenue ($K)',
+                            data: dashboardData.products.slice(0, 5).map(p => p.revenue / 1000),
+                            backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                            borderColor: '#667eea',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                ticks: { callback: value => '$' + value + 'K' }
+                            }
+                        }
+                    }
+                });
+            }
         }
 
         function renderProductsTable() {
@@ -836,9 +754,21 @@
             });
         }
 
-        // Initialize dashboard on page load
+        // Initialize
         window.addEventListener('load', function() {
-            loadData();
+            // Check if configuration is set
+            const hasConfig = CONFIG.BASE_SHEET_ID || 
+                              CONFIG.SHEET_URLS.KPIs || 
+                              CONFIG.SHEET_URLS.MonthlyRevenue;
+            
+            if (hasConfig) {
+                loadAllData();
+            } else if (CONFIG.USE_DEMO_DATA) {
+                loadDemoData();
+            } else {
+                updateStatus('error', '✗ No configuration found');
+                alert('Please configure your Google Sheets URLs in the CONFIG section of the code.');
+            }
         });
     </script>
 </body>
