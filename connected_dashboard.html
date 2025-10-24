@@ -453,7 +453,11 @@
 
             updateConnectionStatus('loading', '⏳ Connecting...');
 
-            Papa.parse(url, {
+            // Add timestamp to bypass cache
+            const cacheBuster = new Date().getTime();
+            const dataUrl = url + (url.includes('?') ? '&' : '?') + 'cachebust=' + cacheBuster;
+
+            Papa.parse(dataUrl, {
                 download: true,
                 header: true,
                 complete: function(results) {
