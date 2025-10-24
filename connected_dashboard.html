@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sales Dashboard - Connected to Google Sheets</title>
+    <title>Sales Performance Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
@@ -44,6 +44,29 @@
             font-size: 14px;
         }
 
+        .refresh-button {
+            float: right;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .refresh-button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .refresh-button:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+        }
+
         .connection-status {
             display: inline-block;
             padding: 5px 15px;
@@ -66,88 +89,6 @@
         .status-error {
             background: #fed7d7;
             color: #742a2a;
-        }
-        
-        .config-panel {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        .config-panel h3 {
-            color: #2d3748;
-            margin-bottom: 15px;
-            font-size: 18px;
-        }
-
-        .input-group {
-            margin-bottom: 15px;
-        }
-
-        .input-group label {
-            display: block;
-            color: #4a5568;
-            font-size: 14px;
-            margin-bottom: 5px;
-            font-weight: 600;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #e2e8f0;
-            border-radius: 5px;
-            font-size: 14px;
-            font-family: monospace;
-        }
-
-        .input-group input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .btn-connect {
-            background: #667eea;
-            color: white;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 5px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-connect:hover {
-            background: #5568d3;
-            transform: translateY(-2px);
-        }
-
-        .btn-connect:disabled {
-            background: #cbd5e0;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .example-link {
-            margin-top: 10px;
-            padding: 10px;
-            background: #edf2f7;
-            border-radius: 5px;
-            font-size: 13px;
-            color: #4a5568;
-        }
-
-        .example-link a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .example-link a:hover {
-            text-decoration: underline;
         }
         
         .kpi-container {
@@ -262,18 +203,52 @@
             font-size: 14px;
         }
 
-        .loading {
+        .loading-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 50vh;
+            color: white;
             text-align: center;
-            padding: 40px;
-            color: #718096;
         }
 
-        .error-message {
-            background: #fed7d7;
-            color: #742a2a;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 10px;
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-screen {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 600px;
+            margin: 50px auto;
+        }
+
+        .error-screen h2 {
+            color: #c53030;
+            margin-bottom: 15px;
+        }
+
+        .error-screen p {
+            color: #4a5568;
+            line-height: 1.6;
+        }
+
+        #dashboardContent {
+            display: none;
         }
     </style>
 </head>
@@ -281,29 +256,30 @@
     <div class="dashboard">
         <div class="header">
             <h1>📊 Sales Performance Dashboard</h1>
-            <p>Real-time data connected from Google Sheets</p>
-            <span id="connectionStatus" class="connection-status status-loading">⏳ Not Connected</span>
+            <p id="updateTime">Loading data...</p>
+            <button id="refreshButton" class="refresh-button" onclick="manualRefresh()">🔄 Refresh Data</button>
+            <span id="connectionStatus" class="connection-status status-loading">⏳ Connecting...</span>
         </div>
 
-        <div class="config-panel">
-            <h3>🔗 Connect Your Google Sheets Data</h3>
-            <div class="input-group">
-                <label>Google Sheets URL (Published as CSV):</label>
-                <input type="text" id="sheetsUrl" placeholder="https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=0">
-            </div>
-            <button class="btn-connect" onclick="connectData()">Connect Data</button>
-            <button class="btn-connect" onclick="loadDemoData()" style="background: #48bb78; margin-left: 10px;">Use Demo Data</button>
-            
-            <div class="example-link">
-                💡 <strong>How to use:</strong><br>
-                1. Create a Google Sheet with your data (<a href="https://docs.google.com/spreadsheets/d/1tBTf_rn5x9MqE5OaWXxP8Yfz6X3jGhN7DkLmWqRsTuY/copy" target="_blank">Use this template</a>)<br>
-                2. File → Share → Publish to web → Select "Comma-separated values (.csv)"<br>
-                3. Copy the URL and paste it above<br>
-                4. Click "Connect Data"
-            </div>
+        <div id="loadingScreen" class="loading-screen">
+            <div class="spinner"></div>
+            <h2>Loading Dashboard Data...</h2>
+            <p>Fetching latest information from data source</p>
         </div>
 
-        <div id="dashboardContent" style="display: none;">
+        <div id="errorScreen" class="error-screen" style="display: none;">
+            <h2>⚠️ Unable to Load Data</h2>
+            <p>The dashboard couldn't connect to the data source. This could be because:</p>
+            <ul style="text-align: left; margin: 20px 0;">
+                <li>The Google Sheet URL is not configured</li>
+                <li>The sheet is not published to web</li>
+                <li>There's a network connectivity issue</li>
+            </ul>
+            <p><strong>Using demo data instead.</strong></p>
+            <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 30px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">Retry Connection</button>
+        </div>
+
+        <div id="dashboardContent">
             <div class="kpi-container">
                 <div class="kpi-card">
                     <div class="kpi-title">Total Revenue</div>
@@ -374,12 +350,35 @@
         </div>
         
         <div class="footer">
-            <p>Created by Data Analytics Consultant | Connected Dashboard Demo</p>
-            <p>Open Source Project - Visit GitHub for source code and documentation</p>
+            <p>Created by Data Analytics Consultant | Real-time Connected Dashboard</p>
+            <p>Data updates automatically from Google Sheets</p>
         </div>
     </div>
     
     <script>
+        // ============================================================================
+        // CONFIGURATION - Edit this section only
+        // ============================================================================
+        
+        const CONFIG = {
+            // OPTION 1: Use your Google Sheets URL
+            // Get this by publishing your sheet as CSV (File → Share → Publish to web → CSV)
+            GOOGLE_SHEETS_URL: '', // Put your Google Sheets CSV URL here
+            
+            // OPTION 2: Use demo data if no URL is provided
+            USE_DEMO_DATA_IF_NO_URL: true,
+            
+            // Auto-refresh interval (in milliseconds) - 0 to disable
+            AUTO_REFRESH_INTERVAL: 0, // 300000 = 5 minutes
+            
+            // Show connection status
+            SHOW_CONNECTION_STATUS: true
+        };
+        
+        // ============================================================================
+        // END CONFIGURATION - Don't edit below this line unless you know what you're doing
+        // ============================================================================
+
         let charts = {};
         let dashboardData = null;
 
@@ -429,64 +428,209 @@
         };
 
         function updateConnectionStatus(status, message) {
+            if (!CONFIG.SHOW_CONNECTION_STATUS) {
+                document.getElementById('connectionStatus').style.display = 'none';
+                return;
+            }
             const statusEl = document.getElementById('connectionStatus');
             statusEl.className = 'connection-status status-' + status;
             statusEl.textContent = message;
         }
 
-        function loadDemoData() {
-            updateConnectionStatus('loading', '⏳ Loading Demo Data...');
+        function updateTimestamp() {
+            const now = new Date();
+            const timeString = now.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.getElementById('updateTime').textContent = 'Last Updated: ' + timeString;
+        }
+
+        function loadData() {
+            // Add timestamp to URL to bypass cache (cache-busting)
+            let dataUrl = CONFIG.GOOGLE_SHEETS_URL;
+            
+            if (dataUrl && dataUrl.trim() !== '') {
+                // Add timestamp parameter to force fresh data
+                const cacheBuster = new Date().getTime();
+                dataUrl = dataUrl + (dataUrl.includes('?') ? '&' : '?') + 'cachebust=' + cacheBuster;
+                
+                // Load from Google Sheets
+                updateConnectionStatus('loading', '⏳ Connecting to data source...');
+                
+                Papa.parse(dataUrl, {
+                    download: true,
+                    header: true,
+                    complete: function(results) {
+                        try {
+                            dashboardData = parseSheetData(results.data);
+                            renderDashboard();
+                            updateConnectionStatus('connected', '✓ Live Data Connected');
+                            updateTimestamp();
+                            document.getElementById('loadingScreen').style.display = 'none';
+                            
+                            // Enable refresh button
+                            document.getElementById('refreshButton').disabled = false;
+                            
+                            // Setup auto-refresh if configured
+                            if (CONFIG.AUTO_REFRESH_INTERVAL > 0) {
+                                setInterval(loadData, CONFIG.AUTO_REFRESH_INTERVAL);
+                            }
+                        } catch (error) {
+                            console.error('Parse error:', error);
+                            handleLoadError();
+                        }
+                    },
+                    error: function(error) {
+                        console.error('Connection error:', error);
+                        handleLoadError();
+                    }
+                });
+            } else if (CONFIG.USE_DEMO_DATA_IF_NO_URL) {
+                // Use demo data
+                setTimeout(() => {
+                    dashboardData = demoData;
+                    renderDashboard();
+                    updateConnectionStatus('connected', '✓ Demo Data Loaded');
+                    updateTimestamp();
+                    document.getElementById('loadingScreen').style.display = 'none';
+                    document.getElementById('refreshButton').disabled = false;
+                }, 1000);
+            } else {
+                handleLoadError();
+            }
+        }
+
+        function manualRefresh() {
+            // Disable button during refresh
+            const btn = document.getElementById('refreshButton');
+            btn.disabled = true;
+            btn.textContent = '🔄 Refreshing...';
+            
+            updateConnectionStatus('loading', '⏳ Refreshing data...');
+            
+            // Force reload data
             setTimeout(() => {
-                dashboardData = demoData;
-                renderDashboard();
-                updateConnectionStatus('connected', '✓ Demo Data Loaded');
+                loadData();
+                btn.textContent = '🔄 Refresh Data';
             }, 500);
         }
 
-        function connectData() {
-            const url = document.getElementById('sheetsUrl').value.trim();
-            
-            if (!url) {
-                alert('Please enter a Google Sheets URL');
-                return;
+        function handleLoadError() {
+            if (CONFIG.USE_DEMO_DATA_IF_NO_URL) {
+                // Fallback to demo data
+                dashboardData = demoData;
+                renderDashboard();
+                updateConnectionStatus('error', '⚠ Using Demo Data');
+                updateTimestamp();
+                document.getElementById('loadingScreen').style.display = 'none';
+            } else {
+                // Show error screen
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('errorScreen').style.display = 'block';
+                updateConnectionStatus('error', '✗ Connection Failed');
             }
-
-            updateConnectionStatus('loading', '⏳ Connecting...');
-
-            // Add timestamp to bypass cache
-            const cacheBuster = new Date().getTime();
-            const dataUrl = url + (url.includes('?') ? '&' : '?') + 'cachebust=' + cacheBuster;
-
-            Papa.parse(dataUrl, {
-                download: true,
-                header: true,
-                complete: function(results) {
-                    try {
-                        dashboardData = parseSheetData(results.data);
-                        renderDashboard();
-                        updateConnectionStatus('connected', '✓ Connected to Google Sheets');
-                        
-                        // Save URL to localStorage
-                        localStorage.setItem('sheetsUrl', url);
-                    } catch (error) {
-                        updateConnectionStatus('error', '✗ Error parsing data');
-                        console.error('Parse error:', error);
-                        alert('Error parsing data. Please check your sheet format.');
-                    }
-                },
-                error: function(error) {
-                    updateConnectionStatus('error', '✗ Connection failed');
-                    console.error('Connection error:', error);
-                    alert('Failed to connect. Make sure the sheet is published and the URL is correct.');
-                }
-            });
         }
 
         function parseSheetData(data) {
-            // This function would parse your Google Sheets data
-            // For now, returning demo data structure
-            // You would customize this based on your sheet structure
-            return demoData;
+            // Parse real data from Google Sheets
+            // Data comes as array of objects with column headers as keys
+            
+            try {
+                // The CSV returns data with columns: Metric, Value, Change
+                // We need to map it to our dashboard structure
+                
+                const parsed = {
+                    kpis: [],
+                    monthlyRevenue: [],
+                    categories: [],
+                    regions: [],
+                    products: []
+                };
+                
+                // Parse based on what data looks like
+                // If data has 'Metric' column, it's KPIs
+                if (data.length > 0 && data[0].hasOwnProperty('Metric')) {
+                    data.forEach(row => {
+                        if (row.Metric && row.Value) {
+                            parsed.kpis.push({
+                                metric: row.Metric,
+                                value: parseFloat(row.Value) || 0,
+                                change: parseFloat(row.Change) || 0
+                            });
+                        }
+                    });
+                    return parsed.kpis.length > 0 ? { ...demoData, kpis: parsed.kpis } : demoData;
+                }
+                
+                // If data has 'Month' column, it's monthly revenue
+                if (data.length > 0 && data[0].hasOwnProperty('Month')) {
+                    data.forEach(row => {
+                        if (row.Month && row.Revenue) {
+                            parsed.monthlyRevenue.push({
+                                month: row.Month,
+                                revenue: parseFloat(row.Revenue) || 0
+                            });
+                        }
+                    });
+                    return parsed.monthlyRevenue.length > 0 ? { ...demoData, monthlyRevenue: parsed.monthlyRevenue } : demoData;
+                }
+                
+                // If data has 'Name' and 'Value' columns, could be categories
+                if (data.length > 0 && data[0].hasOwnProperty('Name') && data[0].hasOwnProperty('Value')) {
+                    data.forEach(row => {
+                        if (row.Name && row.Value) {
+                            // Check if it has Revenue column (then it's regions)
+                            if (data[0].hasOwnProperty('Revenue')) {
+                                parsed.regions.push({
+                                    name: row.Name,
+                                    revenue: parseFloat(row.Revenue) || 0
+                                });
+                            } else {
+                                parsed.categories.push({
+                                    name: row.Name,
+                                    value: parseFloat(row.Value) || 0
+                                });
+                            }
+                        }
+                    });
+                    
+                    if (parsed.regions.length > 0) {
+                        return { ...demoData, regions: parsed.regions };
+                    }
+                    if (parsed.categories.length > 0) {
+                        return { ...demoData, categories: parsed.categories };
+                    }
+                }
+                
+                // If data has 'Rank' column, it's products
+                if (data.length > 0 && data[0].hasOwnProperty('Rank')) {
+                    data.forEach(row => {
+                        if (row.Rank && row.Name) {
+                            parsed.products.push({
+                                rank: parseInt(row.Rank) || 0,
+                                name: row.Name || '',
+                                category: row.Category || '',
+                                units: parseInt(row.Units) || 0,
+                                revenue: parseFloat(row.Revenue) || 0,
+                                growth: parseFloat(row.Growth) || 0
+                            });
+                        }
+                    });
+                    return parsed.products.length > 0 ? { ...demoData, products: parsed.products } : demoData;
+                }
+                
+                // If nothing matches, return demo data
+                console.warn('Could not parse sheet data, using demo data');
+                return demoData;
+                
+            } catch (error) {
+                console.error('Error parsing sheet data:', error);
+                return demoData;
+            }
         }
 
         function renderDashboard() {
@@ -692,14 +836,9 @@
             });
         }
 
-        // Load saved URL on page load
+        // Initialize dashboard on page load
         window.addEventListener('load', function() {
-            const savedUrl = localStorage.getItem('sheetsUrl');
-            if (savedUrl) {
-                document.getElementById('sheetsUrl').value = savedUrl;
-            }
-            // Load demo data by default
-            loadDemoData();
+            loadData();
         });
     </script>
 </body>
