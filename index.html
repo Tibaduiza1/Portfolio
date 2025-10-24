@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Visualization Infographic Banners - Portfolio Project</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            padding: 30px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .project-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .project-header h1 {
+            color: #2d3748;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .project-header p {
+            color: #718096;
+            font-size: 16px;
+        }
+        
+        /* Corporate Performance Banner */
+        .banner {
+            margin-bottom: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .performance-banner {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 50px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .performance-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 600px;
+            height: 600px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+        }
+        
+        .banner-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .metric-box {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .metric-value {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #4ade80;
+        }
+        
+        .metric-label {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.9;
+        }
+        
+        .metric-change {
+            font-size: 16px;
+            margin-top: 10px;
+            color: #4ade80;
+            font-weight: 600;
+        }
+        
+        /* Market Insights Banner */
+        .market-banner {
+            background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+            padding: 50px;
+            color: white;
+        }
+        
+        .insight-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+        
+        .insight-text h2 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: #60a5fa;
+        }
+        
+        .insight-text p {
+            font-size: 18px;
+            line-height: 1.8;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+        
+        .stat-highlight {
+            display: inline-block;
+            background: rgba(96, 165, 250, 0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: #60a5fa;
+        }
+        
+        .chart-placeholder {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 30px;
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+        
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            height: 200px;
+            gap: 15px;
+        }
+        
+        .bar {
+            flex: 1;
+            background: linear-gradient(to top, #60a5fa, #3b82f6);
+            border-radius: 8px 8px 0 0;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .bar:hover {
+            transform: translateY(-10px);
+            opacity: 0.8;
+        }
+        
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 12px;
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .bar-value {
+            position: absolute;
+            top: -25px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        /* Revenue Growth Timeline Banner */
+        .timeline-banner {
+            background: white;
+            padding: 50px;
+        }
+        
+        .timeline-banner h2 {
+            color: #2d3748;
+            font-size: 32px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        
+        .timeline {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            padding: 40px 0;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(to right, #3b82f6, #10b981);
+            transform: translateY(-50%);
+        }
+        
+        .timeline-item {
+            position: relative;
+            text-align: center;
+            flex: 1;
+        }
+        
+        .timeline-dot {
+            width: 30px;
+            height: 30px;
+            background: white;
+            border: 5px solid #3b82f6;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .timeline-year {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+        
+        .timeline-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #3b82f6;
+            margin-bottom: 5px;
+        }
+        
+        .timeline-growth {
+            font-size: 14px;
+            color: #10b981;
+            font-weight: 600;
+        }
+        
+        /* Product Comparison Banner */
+        .comparison-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 50px;
+            color: white;
+        }
+        
+        .comparison-banner h2 {
+            font-size: 32px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+        
+        .product-card {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            border: 2px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .product-name {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .product-stats {
+            margin-bottom: 20px;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .stat-value {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .product-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            background: #10b981;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        /* Regional Heatmap Banner */
+        .heatmap-banner {
+            background: #1a1a2e;
+            padding: 50px;
+            color: white;
+        }
+        
+        .heatmap-banner h2 {
+            font-size: 32px;
+            margin-bottom: 40px;
+            text-align: center;
+            color: #eee;
+        }
+        
+        .regions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .region-box {
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 5px solid;
+            transition: all 0.3s ease;
+        }
+        
+        .region-box:hover {
+            transform: translateX(10px);
+        }
+        
+        .region-box.high {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: #10b981;
+        }
+        
+        .region-box.medium {
+            background: rgba(251, 191, 36, 0.2);
+            border-color: #fbbf24;
+        }
+        
+        .region-box.low {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: #ef4444;
+        }
+        
+        .region-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .region-data {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .data-point {
+            font-size: 14px;
+        }
+        
+        .data-value {
+            display: block;
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        
+        /* Key Insights Banner */
+        .insights-banner {
+            background: white;
+            padding: 50px;
+            border: 3px solid #e5e7eb;
+        }
+        
+        .insights-banner h2 {
+            color: #2d3748;
+            font-size: 32px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+        }
+        
+        .insight-card {
+            padding: 30px;
+            background: #f8fafc;
+            border-radius: 10px;
+            border-left: 5px solid #3b82f6;
+        }
+        
+        .insight-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+        
+        .insight-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+        
+        .insight-description {
+            font-size: 15px;
+            color: #718096;
+            line-height: 1.6;
+        }
+        
+        .insight-number {
+            display: inline-block;
+            background: #3b82f6;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="project-header">
+            <h1>📊 Corporate Data Visualization Banners</h1>
+            <p>Professional infographic banners designed for executive presentations and business reports</p>
+        </div>
+        
+        <!-- Banner 1: Corporate Performance Overview -->
+        <div class="banner performance-banner">
+            <div class="banner-title">Q4 2024 Performance Overview</div>
+            <div class="metrics-grid">
+                <div class="metric-box">
+                    <div class="metric-value">$2.8B</div>
+                    <div class="metric-label">Total Revenue</div>
+                    <div class="metric-change">↑ 27.4% YoY</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-value">30.0%</div>
+                    <div class="metric-label">Operating Margin</div>
+                    <div class="metric-change">↑ 8.6 pts</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-value">$683M</div>
+                    <div class="metric-label">Net Income</div>
+                    <div class="metric-change">↑ 36.6% YoY</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-value">$755M</div>
+                    <div class="metric-label">Free Cash Flow</div>
+                    <div class="metric-change">↑ 33.2% YoY</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-value">7,713</div>
+                    <div class="metric-label">Global Employees</div>
+                    <div class="metric-change">↑ 15.4% YoY</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Banner 2: Market Insights -->
+        <div class="banner market-banner">
+            <div class="insight-container">
+                <div class="insight-text">
+                    <h2>Market Position & Growth</h2>
+                    <p>Our market share has grown to <span class="stat-highlight">34.2%</span> in the North American region, establishing us as the industry leader.</p>
+                    <p>Customer acquisition cost decreased by <span class="stat-highlight">22%</span> while retention improved to <span class="stat-highlight">94.2%</span>.</p>
+                    <p>Product innovation pipeline includes <span class="stat-highlight">15 new solutions</span> scheduled for launch in 2025.</p>
+                </div>
+                <div class="chart-placeholder">
+                    <div class="bar-chart">
+                        <div class="bar" style="height: 85%;">
+                            <div class="bar-value">85%</div>
+                            <div class="bar-label">Q1</div>
+                        </div>
+                        <div class="bar" style="height: 92%;">
+                            <div class="bar-value">92%</div>
+                            <div class="bar-label">Q2</div>
+                        </div>
+                        <div class="bar" style="height: 88%;">
+                            <div class="bar-value">88%</div>
+                            <div class="bar-label">Q3</div>
+                        </div>
+                        <div class="bar" style="height: 96%;">
+                            <div class="bar-value">96%</div>
+                            <div class="bar-label">Q4</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Banner 3: Revenue Growth Timeline -->
+        <div class="banner timeline-banner">
+            <h2>Revenue Growth Trajectory (2020-2024)</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-year">2020</div>
+                    <div class="timeline-value">$1.2B</div>
+                    <div class="timeline-growth">Base Year</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-year">2021</div>
+                    <div class="timeline-value">$1.6B</div>
+                    <div class="timeline-growth">+33% Growth</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-year">2022</div>
+                    <div class="timeline-value">$1.9B</div>
+                    <div class="timeline-growth">+19% Growth</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-year">2023</div>
+                    <div class="timeline-value">$2.2B</div>
+                    <div class="timeline-growth">+16% Growth</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-year">2024</div>
+                    <div class="timeline-value">$2.8B</div>
+                    <div class="timeline-growth">+27% Growth</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Banner 4: Product Line Comparison -->
+        <div class="banner comparison-banner">
+            <h2>Product Line Performance Analysis</h2>
+            <div class="comparison-grid">
+                <div class="product-card">
+                    <div class="product-name">Enterprise Suite</div>
+                    <div class="product-stats">
+                        <div class="stat-row">
+                            <span class="stat-label">Revenue</span>
+                            <span class="stat-value">$1.58B</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Growth</span>
+                            <span class="stat-value">+27.4%</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Margin</span>
+                            <span class="stat-value">62%</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Customers</span>
+                            <span class="stat-value">4,256</span>
+                        </div>
+                    </div>
+                    <div class="product-badge">Top Performer</div>
+                </div>
+                
+                <div class="product-card">
+                    <div class="product-name">Cloud Services</div>
+                    <div class="product-stats">
+                        <div class="stat-row">
+                            <span class="stat-label">Revenue</span>
+                            <span class="stat-value">$854M</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Growth</span>
+                            <span class="stat-value">+35.2%</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Margin</span>
+                            <span class="stat-value">48%</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Customers</span>
+                            <span class="stat-value">2,134</span>
+                        </div>
+                    </div>
+                    <div class="product-badge">Fastest Growing</div>
+                </div>
+                
+                <div class="product-card">
+                    <div class="product-name">Security Solutions</div>
+                    <div class="product-stats">
+                        <div class="stat-row">
+                            <span class="stat-label">Revenue</span>
+                            <span class="stat-value">$420M</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Growth</span>
+                            <span class="stat-value">+22.1%</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Margin</span>
+                            <span class="stat-value">55%</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Customers</span>
+                            <span class="stat-value">1,089</span>
+                        </div>
+                    </div>
+                    <div class="product-badge">High Margin</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Banner 5: Regional Performance Heatmap -->
+        <div class="banner heatmap-banner">
+            <h2>Global Regional Performance Overview</h2>
+            <div class="regions-grid">
+                <div class="region-box high">
+                    <div class="region-name">🇺🇸 North America</div>
+                    <div class="region-data">
+                        <div class="data-point">
+                            Revenue
+                            <span class="data-value">$1.14B</span>
+                        </div>
+                        <div class="data-point">
+                            Growth
+                            <span class="data-value">+27.4%</span>
+                        </div>
+                        <div class="data-point">
+                            Market Share
+                            <span class="data-value">34.2%</span>
+                        </div>
+                        <div class="data-point">
+                            Employees
+                            <span class="data-value">2,847</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="region-box high">
+                    <div class="region-name">🇪🇺 Europe</div>
+                    <div class="region-data">
+                        <div class="data-point">
+                            Revenue
+                            <span class="data-value">$854M</span>
+                        </div>
+                        <div class="data-point">
+                            Growth
+                            <span class="data-value">+28.9%</span>
+                        </div>
+                        <div class="data-point">
+                            Market Share
+                            <span class="data-value">28.7%</span>
+                        </div>
+                        <div class="data-point">
+                            Employees
+                            <span class="data-value">2,134</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="region-box medium">
+                    <div class="region-name">🌏 Asia Pacific</div>
+                    <div class="region-data">
+                        <div class="data-point">
+                            Revenue
+                            <span class="data-value">$683M</span>
+                        </div>
+                        <div class="data-point">
+                            Growth
+                            <span class="data-value">+35.2%</span>
+                        </div>
+                        <div class="data-point">
+                            Market Share
+                            <span class="data-value">19.8%</span>
+                        </div>
+                        <div class="data-point">
+                            Employees
+                            <span class="data-value">1,876</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="region-box medium">
+                    <div class="region-name">🌎 Latin America</div>
+                    <div class="region-data">
+                        <div class="data-point">
+                            Revenue
+                            <span class="data-value">$142M</span>
+                        </div>
+                        <div class="data-point">
+                            Growth
+                            <span class="data-value">+18.6%</span>
+                        </div>
+                        <div class="data-point">
+                            Market Share
+                            <span class="data-value">9.8%</span>
+                        </div>
+                        <div class="data-point">
+                            Employees
+                            <span class="data-value">567</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="region-box low">
+                    <div class="region-name">🌍 Middle East & Africa</div>
+                    <div class="region-data">
+                        <div class="data-point">
+                            Revenue
+                            <span class="data-value">$28M</span>
+                        </div>
+                        <div class="data-point">
+                            Growth
+                            <span class="data-value">+22.1%</span>
+                        </div>
+                        <div class="data-point">
+                            Market Share
+                            <span class="data-value">7.5%</span>
+                        </div>
+                        <div class="data-point">
+                            Employees
+                            <span class="data-value">289</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Banner 6: Key Strategic Insights -->
+        <div class="banner insights-banner">
+            <h2>Strategic Business Insights</h2>
+            <div class="insights-grid">
+                <div class="insight-card">
+                    <div class="insight-icon">💡</div>
+                    <div class="insight-title">Customer Retention Excellence</div>
+                    <div class="insight-description">
+                        Achieved 94.2% customer retention rate through enhanced support and product improvements. Customer lifetime value increased by 42% year-over-year.
+                    </div>
+                    <span class="insight-number">94.2% Retention</span>
+                </div>
+                
+                <div class="insight-card">
+                    <div class="insight-icon">📈</div>
+                    <div class="insight-title">Operational Efficiency Gains</div>
+                    <div class="insight-description">
+                        Reduced operational costs by 18% through automation initiatives while improving service delivery speed by 35%.
+                    </div>
+                    <span class="insight-number">-18% Cost Reduction</span>
+                </div>
+                
+                <div class="insight-card">
+                    <div class="insight-icon">🚀</div>
+                    <div class="insight-title">Innovation Pipeline</div>
+                    <div class="insight-description">
+                        R&D investment of $399M (14% of revenue) resulted in 15 new product launches and 47 patent applications filed.
+                    </div>
+                    <span class="insight-number">15 New Products</span>
+                </div>
+                
+                <div class="insight-card">
+                    <div class="insight-icon">🌍</div>
+                    <div class="insight-title">Global Expansion Success</div>
+                    <div class="insight-description">
+                        Entered 8 new markets with strong adoption rates. International revenue now represents 60% of total revenue, up from 52% last year.
+                    </div>
+                    <span class="insight-number">60% International</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
